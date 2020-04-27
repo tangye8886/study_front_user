@@ -514,7 +514,7 @@ export default {
     },
     fileUpload(e) {
             let that=this;
-            let post_url="http://127.0.0.1:8002/api/vedio/fileUpload";
+            let post_url="http://192.168.196.100:8002/api/vedio/fileUpload";
             var _this = this;
             var formData = new FormData();
             formData.append("file",e.target.files[0]);
@@ -538,7 +538,7 @@ export default {
            });
            if(this.fileUploadPercent>0 && this.form.image)  //如果用户操作了上传文件
            {
-               this.$axios.delete('http://127.0.0.1:8002/api/vedio/fileDelete?path='+this.form.image).then((response)=>{});
+               this.$axios.delete('http://192.168.196.102:8002/api/vedio/fileDelete?path='+this.form.image).then((response)=>{});
            }
       },
        gotoCourseInfo(id){
