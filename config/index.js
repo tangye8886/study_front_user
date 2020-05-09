@@ -11,12 +11,8 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/tht/',
     proxyTable: {
-      '/api': {
-        target: 'http://192.168.196.148:8002/api/vedio/fileUpload',
-        changeOrigin: true,
-        pathRewrite: {
-          '^/api': ''
-        }
+      '/api/**': {
+        target: 'http://192.168.196.102:9200/study-user/'
       }
     },
 

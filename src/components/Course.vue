@@ -267,7 +267,7 @@ export default {
 			   if(userNo)
 			   {
 				   let json={"uid":userNo,"cid":id};
-				   this.$axios.post('api/user/course/redis/addSeeRecord',json).then((response)=>{});
+				   this.$axios.post('api/user/course/redis/addSeeRecord',json,{headers:{"Authorization":"Bearer "+sessionStorage.getItem('token')}}).then((response)=>{});
 			   }
 		   }
 	   },  
@@ -278,7 +278,7 @@ export default {
 			   if(userNo)
 			   {
 				   let json={"uid":userNo,"cid":id};
-				   this.$axios.post('api/user/course/redis/addLoveCourse',json).then((response)=>{
+				   this.$axios.post('api/user/course/redis/addLoveCourse',json,{headers:{"Authorization":"Bearer "+sessionStorage.getItem('token')}}).then((response)=>{
 					   this.$message.success("收藏成功");
 				   });
 			   }

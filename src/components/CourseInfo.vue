@@ -4,7 +4,6 @@
 <div class="container layout layout-margin-top">   
 	<ol class="breadcrumb">
 		<li><a>全部课程</a></li>
-		<li><a>Linux</a></li>
 		<li class="active">
 			<a>
 				{{courseInfo.title}}
@@ -368,7 +367,6 @@ export default {
 		 //需要登录才可以看视频
 		 if(sessionStorage.getItem('token'))
 		 {
-			 console.log('可以看视频');
 			 //已经购买或者已经是超级会员
 			 if(sessionStorage.getItem('role')==3 || this.isBuy || this.courseInfo.price==0)
 			 {
@@ -443,7 +441,6 @@ export default {
             let url='api/user/userInfo/userLogin?username='+this.form.username+'&password='+this.form.password
             this.$axios.get(url).then((response)=>{
                 let map=response.data;
-                console.log(map);
                  if(map.result==1)
                  {
                     this.$message.success("登陆成功");
@@ -478,8 +475,8 @@ export default {
 	initBuy(){   //查询用户是否已经购买了该课程
 		if(sessionStorage.getItem('token'))
 		{
-			let json={"pageSize":1,"pageNum":1,"cid":this.courseNo,"uid":this.currentUserID};
-			this.$axios.post('api/user/order/query',json).then((response)=>{
+			let json={"pageSize":1,"pageNum":1,"cid":this.courseNo,"uid":this.currentUserID,"role":this.currentUserRole};
+			this.$axios.post('api/user/order/query',json,{headers:{"Authorization":"Bearer "+sessionStorage.getItem('token')}}).then((response)=>{
 				if(response.data.data.total>0)
 				{
 					this.isBuy=true;
@@ -497,15 +494,6 @@ export default {
 				{
 					this.$message.error("您已是会员/已购买,请勿重新操作");
 				}else{
-					// let json={
-					// 	"count":1,"status":1,"price":this.courseInfo.price,
-					// 	"paystatus":1,"cid":this.courseNo,"uid":this.currentUserID,
-					// 	"address":"非实物订单，无需地址。","phone":"非实物订单，无需联系方式。","person":"非实物订单，无需联系人。"
-					// };
-					// this.$axios.post('api/user/order/insert',json).then((response)=>{
-					// 	this.$message.success("购买成功");
-					// });
-					// this.$router.push({path: '/courseInfo?id=' + this.courseNo});
 					window.location.href="http://127.0.0.1:9200/study-user/api/user/pay/buyCourse?uid="+
 					sessionStorage.getItem('userID')+"&price="+this.courseInfo.price+"&cid="+this.courseNo;
 				}

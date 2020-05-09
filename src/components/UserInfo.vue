@@ -302,6 +302,7 @@ export default {
     return {
       currentUserNo:sessionStorage.getItem('userID'),
       currentUserRole:sessionStorage.getItem('role'),
+      token:sessionStorage.getItem('token'),
       tableData: [],
       seeCordList:[],//浏览记录
       studyCordList:[],//学习记录
@@ -355,11 +356,10 @@ export default {
     }
   },
   mounted () {
-    if(sessionStorage.getItem('token'))   //如果用户已经登录才执行
+    if(this.token)   //如果用户已经登录才执行
     {
-        let id=sessionStorage.getItem('userID');
-        let url='api/user/userInfo/query/'+id;
-        this.$axios.get(url).then((response)=>{
+        let url='api/user/userInfo/query/'+this.currentUserNo;
+        this.$axios.get(url,{headers:{"Authorization":"Bearer "+this.token}}).then((response)=>{
             let result=response.data.data;
             if(result)
             {
@@ -391,7 +391,7 @@ export default {
     this.initStudyCordList();
   },
   updated(){
-    if(sessionStorage.getItem('token'))
+    if(this.token)
     {
       if(sessionStorage.getItem('userinfo_Image')) 
         this.userImage=sessionStorage.getItem('userinfo_Image'); // 有登陆的前提下初始化头像
@@ -406,7 +406,7 @@ export default {
         let jsonDate={
             "pageSize":+this.orderPage.size,"pageNum":this.orderPage.index,"uid":this.currentUserNo,"role":this.currentUserRole
         };
-        this.$axios.post(url,jsonDate).then((response)=>{
+        this.$axios.post(url,jsonDate,{headers:{"Authorization":"Bearer "+this.token}}).then((response)=>{
             let result=response.data.data;
             this.tableData=result.list;
             this.orderPage.total=result.total;
@@ -415,13 +415,13 @@ export default {
     },
     initSeeCord()
     {
-        if(sessionStorage.getItem('token')){  // 保证登录后才调用
-            if(sessionStorage.getItem('userID')){
+        if(this.token){  // 保证登录后才调用
+            if(this.currentUserNo){
                 let url_course='api/user/course/redis/querySeeRecord';
                 let jsonDate={
                     "pageSize":9,"pageNum":1,"uid":this.currentUserNo
                 };
-                this.$axios.post(url_course,jsonDate)
+                this.$axios.post(url_course,jsonDate,{headers:{"Authorization":"Bearer "+this.token}})
                 .then((response)=>{
                     this.seeCordList=response.data.data.list;
                 })
@@ -430,27 +430,28 @@ export default {
     },
     initStudyCordList()
     {
-        if(sessionStorage.getItem('token')){  // 保证登录后才调用
-            if(sessionStorage.getItem('userID')){
+        let that=this;
+        if(that.token){  // 保证登录后才调用
+            if(that.currentUserNo){
                 let url_course='api/user/course/redis/queryUserStudy';
                 let jsonDate={
-                    "uid":sessionStorage.getItem('userID')
+                    "uid":that.currentUserNo
                 };
-                this.$axios.post(url_course,jsonDate)
+                that.$axios.post(url_course,jsonDate,{headers:{"Authorization":"Bearer "+that.token}})
                 .then((response)=>{
-                    this.studyCordList=response.data.data;
+                    that.studyCordList=response.data.data;
                 })
             }
         }
     },
     initLoveCord()
     {
-        if(sessionStorage.getItem('token')){
+        if(this.token){
             let url_course='api/user/course/redis/queryLoveCourse';
             let jsonDate={
                 "pageSize":9,"pageNum":1,"uid":this.currentUserNo
             };
-            this.$axios.post(url_course,jsonDate)
+            this.$axios.post(url_course,jsonDate,{headers:{"Authorization":"Bearer "+this.token}})
             .then((response)=>{
                 this.loveList=response.data.data.list;
             })
@@ -474,7 +475,7 @@ export default {
                 "id":this.form.id,
                 "image":this.form.image,
                 "nick":this.form.nick};
-            this.$axios.put(url,postData).then((response)=>{
+            this.$axios.put(url,postData,{headers:{"Authorization":"Bearer "+this.token}}).then((response)=>{
                 this.$message.success("保存成功！");
                 this.isEdit=false;
                 this.isQuery=true;
@@ -488,9 +489,9 @@ export default {
         this.initOrder();
     },
     removeLove(id){
-        let userNo=sessionStorage.getItem('userID');
+        let userNo=this.currentUserNo;
         let url='api/user/course/redis/delLoveCourse?uid='+userNo+'&cid='+id;
-        this.$axios.get(url).then((response)=>{
+        this.$axios.get(url,{headers:{"Authorization":"Bearer "+this.token}}).then((response)=>{
             this.$message.success("移除成功！");
         });
         this.initLoveCord();
@@ -514,7 +515,7 @@ export default {
     },
     fileUpload(e) {
             let that=this;
-            let post_url="http://192.168.196.100:8002/api/vedio/fileUpload";
+            let post_url="api/user/vedio/fileUpload";
             var _this = this;
             var formData = new FormData();
             formData.append("file",e.target.files[0]);
@@ -524,6 +525,7 @@ export default {
                 data: formData,
                 headers: {
                     'Content-Type': 'multipart/form-data',  // 文件上传
+                    "Authorization":"Bearer "+that.token
                     // 'Content-Type': 'application/x-www-form-urlencoded',  // 表单
                     //'Content-Type': 'application/json;charset=UTF-8'  // json
                 },
@@ -534,22 +536,22 @@ export default {
                 that.form.image=response.data;
                 //sessionStorage.setItem('userinfo_Image',response.data);
             }).catch(function (reason) {
-                this.$message.success("上传失败");
+                that.$message.success("上传失败");
            });
-           if(this.fileUploadPercent>0 && this.form.image)  //如果用户操作了上传文件
+           if(that.fileUploadPercent>0 && that.form.image)  //如果用户操作了上传文件
            {
-               this.$axios.delete('http://192.168.196.102:8002/api/vedio/fileDelete?path='+this.form.image).then((response)=>{});
+               that.$axios.delete('api/user/vedio/fileDelete?path='+that.form.image,{headers:{"Authorization":"Bearer "+that.token}}).then((response)=>{});
            }
       },
        gotoCourseInfo(id){
 		   this.$router.push({path: '/courseInfo?id=' + id});
-		   if(sessionStorage.getItem('token'))  //如果用户有登录  新增用户的浏览记录
+		   if(this.token)  //如果用户有登录  新增用户的浏览记录
 		   {
-			   let userNo=sessionStorage.getItem('userID');
+			   let userNo=this.currentUserNo;
 			   if(userNo)
 			   {
 				   let json={"uid":userNo,"cid":id};
-				   this.$axios.post('api/user/course/redis/addSeeRecord',json).then((response)=>{});
+				   this.$axios.post('api/user/course/redis/addSeeRecord',json,{headers:{"Authorization":"Bearer "+this.token}}).then((response)=>{});
 			   }
 		   }
        },
@@ -560,7 +562,7 @@ export default {
             "user":this.currentUserNo,
             "role":this.currentUserRole
             };
-		this.$axios.post('api/user/course/comment/query',json).then((response)=>{
+		this.$axios.post('api/user/course/comment/query',json,{headers:{"Authorization":"Bearer "+this.token}}).then((response)=>{
 			this.commentData=response.data.data.list;
           	this.commentPage.total=response.data.data.total;
          	this.commentPage.index=response.data.data.pageNum;
@@ -569,7 +571,7 @@ export default {
        deleteComment(id){
           if(confirm('确定删除该评论？'))
           {
-              this.$axios.delete('api/user/course/comment/delete?idList='+id).then((response)=>{
+              this.$axios.delete('api/user/course/comment/delete?idList='+id,{headers:{"Authorization":"Bearer "+this.token}}).then((response)=>{
                 this.$message.success("删除成功");
                 this.initComment();
             });
